@@ -7,7 +7,6 @@ import './css/styles.css';
 
 export const AppRouter: React.StatelessComponent<{}> = () => {
     return (
-
         <BrowserRouter>
             <div>
                 <Header />
