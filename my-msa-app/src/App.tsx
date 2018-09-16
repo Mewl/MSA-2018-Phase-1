@@ -7,69 +7,77 @@ import * as React from 'react';
 // import Dropzone from 'react-dropzone';
 // import Loader from 'react-loader-spinner';
 import TextField from '@material-ui/core/TextField';
+// import Button from '@material-ui/core/Button';
 import './App.css';
+import Convert from './components/Convert'
 
 interface IState {
-  results: any
+  currencyTo: any,
+  currencyFrom: any,
+  conversionAmount: any,
+  error: any,
+  total: any
 }
 
-export default class App extends React.Component<{}, IState>{
+class App extends React.Component<{}, IState>{
   constructor(props: any) {
     super(props)
     this.state = {
-      results: "",
+      currencyTo: "",
+      currencyFrom: "",
+      conversionAmount: "",
+      error: "",
+      total: ""
     }
   }
 
-  public exchange = async(e: any) => {
+  public setVar = async(e: any) => {
     e.preventDefault();
-    fetch('https://orion.apiseeds.com/api/exchangerates/convert/${currencyFrom}/${currencyTo}&apikey=KEzZtCBHi4ZEtVmCS77DvtLiJfeYGjnvb6BIQAxWJS27rG5DL99dzHoHCRQfyrCv', {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'text/plain',
-      },
-  
-    })
-    .then((response : any) => {
-      if (!response.ok) {
-        this.setState({results: response.statusText})
+    const currency1 = e.target.elements.currencyFrom.value;
+    const currency2 = e.target.elements.currencyTo.value;
+
+    if(currency1&&currency2){
+    const apiCall = await fetch(`https://orion.apiseeds.com/api/exchangerates/convert/${currency1}/${currency2}&apikey=KEzZtCBHi4ZEtVmCS77DvtLiJfeYGjnvb6BIQAxWJS27rG5DL99dzHoHCRQfyrCv`);
+    const data = await apiCall.json();
+    if (data.from.code && data.to.code){
+      this.setState({
+        currencyTo: data.to.code,
+        currencyFrom: data.from.code,
+        conversionAmount: data.from.updated,
+        error: "",
+        total: data.result.format
+      });
       }
+    }
       else {
-        response.json().then((data:any) => this.setState({results: data[0].class}))
+        this.setState({
+          currencyTo: undefined,
+          currencyFrom: undefined,
+          conversionAmount: undefined,
+          error: "Currency undefined, please enter valid 3 character currency code",
+          total: undefined
+        })
       }
-      return response
-    })
+
   }
 
 
   public render() {
-
     return (
       <div className="container-fluid">
         <div className="centreText">
-        <form className={"Covert"} noValidate autoComplete="off">
+        <Convert setVar={this.setVar}/>
         <TextField
-          id="From"
-          label="From"
+          id="convertedAmount"
+          label="Converted amount"
           margin="normal"
         />
-        <TextField
-          id="To"
-          label="To"
-          margin="normal"
-        />
-        <TextField
-          id="Amount"
-          label="Amount"
-          margin="normal"
-        />
-        </form>
 
         <div  className="loading">
           {
-            this.state.results === "" ?
+            this.state.total === "" && this.state.total.length > 0?
             <CircularProgress thickness={3} /> :
-            <p>{this.state.results}</p>
+            <p>{this.state.total}</p>
           }
         </div>
           
@@ -79,3 +87,5 @@ export default class App extends React.Component<{}, IState>{
     );
   }
 }
+
+export default App;
